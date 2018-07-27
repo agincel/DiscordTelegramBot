@@ -1,0 +1,21 @@
+{
+  "name": "basicdiscordtelegrambot",
+  "version": "1.0.0",
+  "description": "A bot that can send/receive information from both Telegram and Discord simultaneously",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [
+    "telegram",
+    "discord",
+    "bot"
+  ],
+  "author": "Adam Gincel",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^11.3.2",
+    "fs": "0.0.1-security",
+    "node-telegram-bot-api": "^0.30.0"
+  }
+}
