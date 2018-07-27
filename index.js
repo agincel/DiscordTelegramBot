@@ -6,6 +6,7 @@
 const fs = require("fs");
 
 const tokens = JSON.parse(fs.readFileSync("./tokens.json", "utf8"));
+const prefixes = JSON.parse(fs.readFileSync("./prefix.json", "utf8"));
 
 const Telegram = require('node-telegram-bot-api'); //telegram
 const TelegramBot = new Telegram(tokens.telegram, {polling: true});
@@ -23,9 +24,6 @@ async function handleMessage(text, args, platformObject) {
     //this can be further abstracted to multiple command handlers if desired
     await commands.handle(text, args, platformObject, {telegram: TelegramBot, discord: DiscordBot});
 }
-
-
-
 
 
 DiscordBot.login(tokens.discord);
@@ -48,6 +46,13 @@ DiscordBot.on('message', async (message) => {
 
         //Used to determine command and parameters
         let args = message.content.toLowerCase().split(" ");
+
+	//to support different command prefixes on Discord and Telegram, we transform args[0] from the Discord Prefix to the Telegram Prefix here
+	//this way we only have to check for a single string in the command handler(s)
+	if (args[0][0] == prefixes.discord)
+		args[0] = prefixes.telegram + args[0].substring(1);
+	else if (args[0][0] == prefixes.telegram) //we don't want discord users to be able to type commands with telegram syntax
+		args[0] = args[0].substring(1);
 
         return await handleMessage(message.content, args, platformObject);
     } else {

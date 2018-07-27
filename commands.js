@@ -5,6 +5,9 @@
     (C) Adam Gincel 2018
 */
 
+const fs = require("fs");
+const prefixes = JSON.parse(fs.readFileSync("./prefix.json", "utf8"));
+const p = prefixes.telegram;
 
 async function genericSendMessage(text, platformObject, bots) {
     if (platformObject.platform == "telegram") {
@@ -15,27 +18,40 @@ async function genericSendMessage(text, platformObject, bots) {
 }
 
 async function genericEditMessage(text, platformObject, messageToEdit, bots) {
-    if (platform == "telegram") {
-        return await bots.telegram.editMessageText(text, {chat_id: parameters.chatId, message_id: platformObject.message.message_id, parse_mode: "Markdown"});
+    if (platformObject.platform == "telegram") {
+        return await bots.telegram.editMessageText(text, {chat_id: platformObject.chatID, message_id: messageToEdit.message_id, parse_mode: "Markdown"});
     } else {
-        return await platformObject.message.edit(text);
+        return await messageToEdit.edit(text);
     }
 }
 
+function isCommand(args, name) {
+	return args[0] == p + name;
+}
+
 async function handle(text, args, platformObject, bots) {
-    //passthrough functions so you don't have to send platformObject and bots each and every time
+    //passthrough functions so you don't have to send redundant info each and every time
     async function sendMessage (messageText) {
         return await genericSendMessage(messageText, platformObject, bots);
     }
     async function editMessage(newText, messageToEdit) {
         return await genericEditMessage(newText, platformObject, messageToEdit, bots);
     }
+    function command(name) {
+	return isCommand(args, name);
+    } 
 
 
     //command replies
-    if (args[0] == "/ping") {
+    if (command("ping")) {
         return await sendMessage("Hello, I am online.");
-    } else if (args[0] == "/edittest") {
+    } else if (command("help")) {
+	let s = "Command Help:\n\n";
+	let prefix = platformObject.platform == "telegram" ? prefixes.telegram : prefixes.discord;
+	s += prefix + "ping - Check if the bot is online.\n";
+	s += prefix + "edittest - Send a message, then instantly edit it.\n";
+	return await sendMessage(s);
+    } else if (command("edittest")) {
         let messageToEdit = await sendMessage("Hi, you shouldn't see this text for long.");
         return await editMessage("You should see this message!", messageToEdit);
     }
